@@ -1,47 +1,61 @@
-import { memo } from 'react'
+import { memo, useRef, useCallback } from 'react'
 import DateCell from './DateCell'
 import { HOLIDAYS } from './Calendar'
 
 const DAYS = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT']
 
 function CalendarGrid({
-  days,
-  year,
+  days = [],
   month,
+  year,
   startDate,
   endDate,
   hoverDate,
   setHoverDate,
   onDayClick,
-  stickers,
+  dateNotes,
 }) {
-  const previewEnd = !endDate ? hoverDate : null
-  const diffDays =
+  const ref = useRef(null)
+  const preview = !endDate ? hoverDate : null
+  const diff =
     startDate && endDate
       ? Math.round(Math.abs(endDate - startDate) / 86400000) + 1
       : null
 
+  const onKey = useCallback((e) => {
+    const cells = Array.from(ref.current?.querySelectorAll('.day-cell') || [])
+    const idx = cells.indexOf(document.activeElement)
+    if (idx < 0) return
+    const moves = { ArrowRight: 1, ArrowLeft: -1, ArrowDown: 7, ArrowUp: -7 }
+    const n = idx + (moves[e.key] || 0)
+    if (n >= 0 && n < cells.length) {
+      e.preventDefault()
+      cells[n]?.focus()
+    }
+  }, [])
+
   return (
-    <div>
-      {/* Day headers */}
+    <div ref={ref} onKeyDown={onKey} role="grid" aria-label="Calendar">
       <div
         style={{
           display: 'grid',
           gridTemplateColumns: 'repeat(7,1fr)',
-          borderBottom: '1.5px solid var(--ink)',
+          borderBottom: '2px solid #d5b496',
+          paddingBottom: 10,
+          marginBottom: 8,
+          gap: 4,
         }}
       >
         {DAYS.map((d, i) => (
           <div
-            key={d}
+            key={i}
             style={{
               textAlign: 'center',
-              padding: '10px 4px',
-              fontSize: 11,
+              fontSize: 9,
               fontWeight: 900,
-              letterSpacing: '0.15em',
-              color: 'var(--ink)',
-              borderRight: i < 6 ? '1px solid var(--grid)' : 'none',
+              color: i === 0 || i === 6 ? '#c8a080' : '#8b6f47',
+              letterSpacing: '1px',
+              fontFamily: 'var(--font-poppins)',
             }}
           >
             {d}
@@ -49,86 +63,53 @@ function CalendarGrid({
         ))}
       </div>
 
-      {/* Range badge */}
-      {diffDays && (
-        <div style={{ textAlign: 'center', padding: '6px 0 0' }}>
-          <span
-            style={{
-              background: 'var(--ink)',
-              color: 'var(--cream)',
-              fontSize: 10,
-              fontWeight: 700,
-              letterSpacing: '0.12em',
-              padding: '3px 12px',
-              borderRadius: 20,
-              display: 'inline-block',
-            }}
-          >
-            {diffDays} DAY{diffDays > 1 ? 'S' : ''} SELECTED
-          </span>
+      {diff && (
+        <div
+          style={{
+            textAlign: 'center',
+            padding: '10px 0',
+            fontSize: 10,
+            fontWeight: 700,
+            background:
+              'linear-gradient(90deg, transparent, rgba(213, 180, 150, 0.12), transparent)',
+            borderRadius: 8,
+            marginBottom: 8,
+            color: '#8b6f47',
+            fontFamily: 'var(--font-poppins)',
+          }}
+        >
+          📅 {diff} {diff === 1 ? 'Day' : 'Days'} Selected
         </div>
       )}
 
-      {/* Grid */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7,1fr)' }}>
-        {days.map((date, i) => {
-          const col = i % 7
-          const isLastRow = i >= days.length - 7
-          const sticker = date
-            ? stickers[
-                `${date.getFullYear()}-${date.getMonth()}-${date.getDate()}`
-              ]
-            : null
-          return date ? (
+      <div
+        style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(7,1fr)',
+          gap: 3,
+        }}
+      >
+        {days.map((date, i) =>
+          !date ? (
+            <div key={i} />
+          ) : (
             <DateCell
               key={i}
               date={date}
               startDate={startDate}
               endDate={endDate}
-              previewEnd={previewEnd}
+              preview={preview}
               holiday={
                 HOLIDAYS[
                   `${date.getFullYear()}-${date.getMonth()}-${date.getDate()}`
                 ]
               }
-              sticker={sticker}
-              onDayClick={onDayClick}
+              onClick={onDayClick}
               onHover={setHoverDate}
-              borderRight={col < 6}
-              borderBottom={!isLastRow}
+              dateNotes={dateNotes}
             />
-          ) : (
-            <div
-              key={i}
-              style={{
-                height: 80,
-                borderRight: col < 6 ? '1px solid var(--grid)' : 'none',
-                borderBottom: !isLastRow ? '1px solid var(--grid)' : 'none',
-              }}
-            />
-          )
-        })}
-      </div>
-
-      {/* Legend */}
-      <div
-        style={{
-          padding: '8px 16px',
-          display: 'flex',
-          gap: 16,
-          flexWrap: 'wrap',
-          fontSize: 9,
-          color: '#999',
-          fontWeight: 700,
-          letterSpacing: '0.1em',
-          borderTop: '1px dashed var(--grid)',
-        }}
-      >
-        <span style={{ color: 'var(--ink)' }}>● START/END</span>
-        <span>▒ IN RANGE</span>
-        <span style={{ color: 'var(--red)' }}>● HOLIDAY</span>
-        <span>□ TODAY</span>
-        <span style={{ color: '#74b9ff' }}>◈ PREVIEW</span>
+          ),
+        )}
       </div>
     </div>
   )
