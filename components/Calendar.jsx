@@ -1,43 +1,45 @@
 'use client'
-import { useState, useEffect, useRef } from 'react'
+import { useState, useRef, useCallback, useEffect } from 'react'
+import { useCalendarNavigation } from '../hooks/useCalendarNavigation'
+import { useLocalStorageSync } from '../hooks/useLocalStorageSync'
 import CalendarGrid from './CalendarGrid'
 import NotesPanel from './NotesPanel'
 
 export const HOLIDAYS = {
-  '2025-0-1': "New Year's Day",
-  '2025-0-14': 'Makar Sankranti',
-  '2025-1-26': 'Republic Day',
-  '2025-2-17': 'Holi',
-  '2025-3-14': 'Baisakhi',
-  '2025-3-18': 'Good Friday',
-  '2025-7-15': 'Independence Day',
-  '2025-9-2': 'Gandhi Jayanti',
-  '2025-10-1': 'Diwali',
-  '2025-11-25': 'Christmas',
-  '2026-0-1': "New Year's Day",
-  '2026-1-26': 'Republic Day',
-  '2026-2-13': 'Holi',
-  '2026-7-15': 'Independence Day',
-  '2026-9-2': 'Gandhi Jayanti',
-  '2026-11-25': 'Christmas',
+  '2025-0-1': "New Year's Day 🎉",
+  '2025-0-14': 'Makar Sankranti 🪁',
+  '2025-1-26': 'Republic Day 🇮🇳',
+  '2025-2-17': 'Holi 🎨',
+  '2025-3-14': 'Baisakhi 🌾',
+  '2025-3-18': 'Good Friday ✝️',
+  '2025-7-15': 'Independence Day 🇮🇳',
+  '2025-9-2': 'Gandhi Jayanti 🕊️',
+  '2025-10-1': 'Diwali 🪔',
+  '2025-11-25': 'Christmas 🎄',
+  '2026-0-1': "New Year's Day 🎉",
+  '2026-1-26': 'Republic Day 🇮🇳',
+  '2026-2-13': 'Holi 🎨',
+  '2026-7-15': 'Independence Day 🇮🇳',
+  '2026-9-2': 'Gandhi Jayanti 🕊️',
+  '2026-11-25': 'Christmas 🎄',
 }
 
-const MONTH_QUOTES = [
-  'New year, same you — but upgraded. Start messy if you have to. Just start.',
-  'Love is in the details. Romanticise the small stuff.',
-  'Spring is coming. So is your main character era.',
-  'April showers, bold powers. Make it count.',
-  'Bloom where you are planted. No excuses.',
-  'Summer is a mindset. Adopt it.',
-  'Half the year done. The other half is yours.',
-  'August energy: golden, relentless, unstoppable.',
-  'Autumn is proof that change can be beautiful.',
-  'Spooky season, brave decisions. Go for it.',
-  'Gratitude is the best attitude. Count your wins.',
-  'End the year how you want the next to begin.',
+export const MONTH_QUOTES = [
+  'New year, same you — but upgraded. Set your goals, romanticise your coffee runs and post that main-character energy. The plot twist is coming.',
+  'Love is in the small moments. Romanticise your February. Make it count, even the ordinary days.',
+  'Spring is coming. So is your main character era. Bloom where you are planted.',
+  'April showers bring bold powers. Make every rainy day a reason to stay cozy and dream bigger.',
+  'May your days be filled with sunshine and the courage to chase every wild idea that crosses your mind.',
+  'Summer is a mindset. Adopt it. Go outside, say yes to things, and let the golden hour be your mood.',
+  "Half the year done. The other half is entirely yours. Don't waste a single golden minute.",
+  "August energy: golden, relentless, unstoppable. Harvest what you planted. You've earned it.",
+  'Autumn is proof that change can be breathtaking. Let go of what no longer serves you.',
+  "Spooky season, brave decisions. Don't be afraid of the dark — be afraid of playing small.",
+  "Gratitude is the best attitude. Count your wins, big and small. You've come so far.",
+  'End the year exactly how you want the next to begin. Make it legendary.',
 ]
 
-const MONTH_EMOJIS = [
+export const MONTH_EMOJIS = [
   '❄️',
   '🌸',
   '🌿',
@@ -51,8 +53,7 @@ const MONTH_EMOJIS = [
   '🍁',
   '🎄',
 ]
-
-const MONTHS = [
+export const MONTHS = [
   'January',
   'February',
   'March',
@@ -67,29 +68,158 @@ const MONTHS = [
   'December',
 ]
 
+const STICKERS = {
+  '2026-0-1': {
+    text: 'HAPPY NEW YEAR',
+    bg: '#f7e55b',
+    color: '#1a1a1a',
+    rotate: -3,
+    style: 'bold',
+  },
+  '2026-0-3': {
+    text: "DON'T WORRY BE HAPPY",
+    bg: '#fd79a8',
+    color: '#fff',
+    rotate: 4,
+    style: 'badge',
+  },
+  '2026-0-5': {
+    text: '☯',
+    bg: '#1a1a1a',
+    color: '#fff',
+    rotate: -2,
+    style: 'icon',
+  },
+  '2026-0-6': {
+    text: 'Book festival tickets',
+    bg: 'transparent',
+    color: '#0984e3',
+    rotate: -1,
+    style: 'handwritten',
+  },
+  '2026-0-7': {
+    text: 'Vacation mode',
+    bg: '#74b9ff',
+    color: '#fff',
+    rotate: 2,
+    style: 'badge',
+  },
+  '2026-0-13': {
+    text: 'AWESOME',
+    bg: '#f7e55b',
+    color: '#1a1a1a',
+    rotate: -3,
+    style: 'badge',
+  },
+  '2026-0-16': {
+    text: 'MAKE IT A GOOD DAY',
+    bg: '#55efc4',
+    color: '#1a1a1a',
+    rotate: 3,
+    style: 'badge',
+  },
+  '2026-0-22': {
+    text: 'Enjoy Today',
+    bg: '#fd79a8',
+    color: '#fff',
+    rotate: -2,
+    style: 'script',
+  },
+  '2026-0-25': {
+    text: '🎫',
+    bg: '#f7e55b',
+    color: '#1a1a1a',
+    rotate: -4,
+    style: 'icon',
+  },
+  '2026-0-28': {
+    text: 'Dinner with Emily',
+    bg: 'transparent',
+    color: '#6c5ce7',
+    rotate: 0,
+    style: 'handwritten',
+  },
+  '2026-0-30': {
+    text: 'GOOD VIBES',
+    bg: '#74b9ff',
+    color: '#fff',
+    rotate: 2,
+    style: 'badge',
+  },
+}
+
+function getWeekBounds(date) {
+  const d = new Date(date)
+  const day = d.getDay()
+  const sun = new Date(d)
+  sun.setDate(d.getDate() - day)
+  const sat = new Date(d)
+  sat.setDate(d.getDate() + (6 - day))
+  return { sun, sat }
+}
+
 export default function Calendar() {
   const today = new Date()
-  const [cur, setCur] = useState(today)
+  const { cur, year, month, days, goToMonth } = useCalendarNavigation(today)
+  const [notes, setNotes] = useLocalStorageSync('wcal-notes-v2', {})
+
   const [startDate, setStartDate] = useState(null)
   const [endDate, setEndDate] = useState(null)
-  const [notes, setNotes] = useState({})
+  const [hoverDate, setHoverDate] = useState(null)
+  const [lastRange, setLastRange] = useState(null)
+  const [pinnedNotes, setPinnedNotes] = useLocalStorageSync(
+    'wcal-pinned-v2',
+    {},
+  )
+  const [notesOpen, setNotesOpen] = useState(false) // mobile bottom sheet
   const [anim, setAnim] = useState('')
   const pending = useRef(null)
+  const touchStartX = useRef(null)
+  const [isMobile, setIsMobile] = useState(false)
 
   useEffect(() => {
-    try {
-      const s = localStorage.getItem('wcal-notes')
-      if (s) setNotes(JSON.parse(s))
-    } catch {}
+    const check = () => setIsMobile(window.innerWidth < 640)
+    check()
+    window.addEventListener('resize', check)
+    return () => window.removeEventListener('resize', check)
   }, [])
 
+  // Keyboard accessibility
   useEffect(() => {
-    try {
-      localStorage.setItem('wcal-notes', JSON.stringify(notes))
-    } catch {}
-  }, [notes])
+    function onKey(e) {
+      if (!startDate || endDate) return
+      if (e.key === 'Escape') {
+        setStartDate(null)
+        setEndDate(null)
+      }
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [startDate, endDate])
 
-  const monthKey = `${cur.getFullYear()}-${cur.getMonth()}`
+  const monthKey = `${year}-${month}`
+  const rangeKey =
+    startDate && endDate
+      ? `${startDate.toISOString().slice(0, 10)}:${endDate.toISOString().slice(0, 10)}`
+      : null
+
+  const activeNote =
+    rangeKey && pinnedNotes[rangeKey] != null
+      ? pinnedNotes[rangeKey]
+      : notes[monthKey] || ''
+
+  function setActiveNote(val) {
+    if (rangeKey) setPinnedNotes((p) => ({ ...p, [rangeKey]: val }))
+    else setNotes((p) => ({ ...p, [monthKey]: val }))
+  }
+
+  // Weekend detection
+  const isWeekendGetaway =
+    startDate &&
+    endDate &&
+    (startDate.getDay() === 6 || startDate.getDay() === 0) &&
+    (endDate.getDay() === 6 || endDate.getDay() === 0) &&
+    Math.round(Math.abs(endDate - startDate) / 86400000) <= 2
 
   function handleDayClick(date) {
     if (!startDate || (startDate && endDate)) {
@@ -100,10 +230,27 @@ export default function Calendar() {
         setStartDate(null)
         return
       }
-      if (date < startDate) {
-        setEndDate(startDate)
-        setStartDate(date)
-      } else setEndDate(date)
+      const [s, e] = date < startDate ? [date, startDate] : [startDate, date]
+      setStartDate(s)
+      setEndDate(e)
+      setLastRange({ start: s, end: e })
+    }
+  }
+
+  function applyPreset(preset) {
+    const t = new Date()
+    if (preset === 'week') {
+      const { sun, sat } = getWeekBounds(t)
+      setStartDate(sun)
+      setEndDate(sat)
+    } else if (preset === 'next7') {
+      const end = new Date(t)
+      end.setDate(t.getDate() + 6)
+      setStartDate(new Date(t))
+      setEndDate(end)
+    } else if (preset === 'last' && lastRange) {
+      setStartDate(lastRange.start)
+      setEndDate(lastRange.end)
     }
   }
 
@@ -112,212 +259,304 @@ export default function Calendar() {
     setAnim('flip-out')
     pending.current = dir
     setTimeout(() => {
-      setCur(
-        (p) => new Date(p.getFullYear(), p.getMonth() + pending.current, 1),
-      )
+      goToMonth(pending.current)
       setStartDate(null)
       setEndDate(null)
+      setHoverDate(null)
       setAnim('flip-in')
-      setTimeout(() => setAnim(''), 400)
-    }, 300)
+      setTimeout(() => setAnim(''), 360)
+    }, 280)
   }
 
-  const month = cur.getMonth()
-  const year = cur.getFullYear()
+  // Touch swipe
+  function onTouchStart(e) {
+    touchStartX.current = e.touches[0].clientX
+  }
+  function onTouchEnd(e) {
+    if (touchStartX.current === null) return
+    const dx = e.changedTouches[0].clientX - touchStartX.current
+    if (Math.abs(dx) > 50) changeMonth(dx < 0 ? 1 : -1)
+    touchStartX.current = null
+  }
 
   return (
-    <div
-      style={{
-        width: '100%',
-        maxWidth: '960px',
-        background: '#f0ece3',
-        borderRadius: '4px',
-        boxShadow: '0 8px 40px rgba(0,0,0,0.22), 0 2px 8px rgba(0,0,0,0.12)',
-        overflow: 'hidden',
-        border: '1px solid #d0ccc4',
-        position: 'relative',
-      }}
-    >
-      {/* Top header area */}
+    <div style={{ width: '100%', maxWidth: 980, position: 'relative' }}>
       <div
         style={{
-          background: '#f0ece3',
-          padding: '28px 32px 0',
-          display: 'flex',
-          alignItems: 'flex-start',
-          justifyContent: 'space-between',
-          gap: 16,
-          flexWrap: 'wrap',
+          background: 'var(--cream)',
+          borderRadius: 4,
+          boxShadow: '0 12px 48px rgba(0,0,0,0.22), 0 2px 8px rgba(0,0,0,0.1)',
+          border: '1.5px solid #c0bcb4',
+          overflow: 'hidden',
         }}
       >
-        {/* Month title + nav */}
-        <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
-          <button
-            onClick={() => changeMonth(-1)}
-            style={{
-              width: 36,
-              height: 36,
-              borderRadius: '50%',
-              border: '2px solid #1a1a1a',
-              background: 'transparent',
-              cursor: 'pointer',
-              fontSize: 18,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              fontWeight: 'bold',
-              color: '#1a1a1a',
-              transition: 'all 0.2s',
-              flexShrink: 0,
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.background = '#1a1a1a'
-              e.currentTarget.style.color = '#f0ece3'
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.background = 'transparent'
-              e.currentTarget.style.color = '#1a1a1a'
-            }}
-          >
-            ‹
-          </button>
-
-          <div>
+        {/* ── HEADER ── */}
+        <div
+          style={{
+            padding: isMobile ? '20px 16px 0' : '28px 36px 0',
+            display: 'flex',
+            alignItems: 'flex-start',
+            justifyContent: 'space-between',
+            gap: 12,
+            flexWrap: 'wrap',
+            position: 'relative',
+          }}
+        >
+          {/* Left: Month title + nav */}
+          <div style={{ display: 'flex', alignItems: 'flex-end', gap: 12 }}>
             <h1
               style={{
                 fontFamily: '"Permanent Marker", cursive',
-                fontSize: 'clamp(42px, 7vw, 72px)',
-                color: '#1a1a1a',
-                margin: 0,
-                lineHeight: 1,
-                letterSpacing: '-1px',
+                fontSize: isMobile ? 52 : 80,
+                color: 'var(--ink)',
+                lineHeight: 0.9,
+                letterSpacing: '-2px',
               }}
             >
               {MONTHS[month]}
             </h1>
             <div
               style={{
+                paddingBottom: 8,
                 display: 'flex',
-                alignItems: 'center',
-                gap: 8,
-                marginTop: 4,
+                flexDirection: 'column',
+                gap: 4,
               }}
             >
-              <span style={{ fontSize: 20 }}>{MONTH_EMOJIS[month]}</span>
-              <span
-                style={{
-                  fontSize: 13,
-                  fontWeight: 700,
-                  letterSpacing: '0.2em',
-                  color: '#555',
-                  textTransform: 'uppercase',
-                }}
+              <button
+                onClick={() => changeMonth(-1)}
+                aria-label="Previous month"
+                style={navBtn}
               >
-                {year}
-              </span>
+                ‹
+              </button>
+              <button
+                onClick={() => changeMonth(1)}
+                aria-label="Next month"
+                style={navBtn}
+              >
+                ›
+              </button>
             </div>
           </div>
 
-          <button
-            onClick={() => changeMonth(1)}
+          {/* Right: Quote + year + deco */}
+          <div style={{ maxWidth: 300, paddingTop: 8, position: 'relative' }}>
+            <div
+              style={{
+                position: 'absolute',
+                top: -4,
+                right: -8,
+                fontSize: 32,
+                color: 'var(--ink)',
+                lineHeight: 1,
+              }}
+            >
+              ✳
+            </div>
+            <div
+              style={{
+                position: 'absolute',
+                top: 14,
+                right: 12,
+                fontSize: 14,
+                color: 'var(--ink)',
+                lineHeight: 1,
+                transform: 'rotate(15deg)',
+              }}
+            >
+              ✳
+            </div>
+            <p
+              style={{
+                fontSize: 10,
+                fontWeight: 500,
+                lineHeight: 1.7,
+                color: '#444',
+                textTransform: 'uppercase',
+                letterSpacing: '0.07em',
+              }}
+            >
+              {MONTH_QUOTES[month]}
+            </p>
+            <p
+              style={{
+                fontSize: 28,
+                fontWeight: 900,
+                color: 'var(--ink)',
+                marginTop: 8,
+                letterSpacing: '0.1em',
+              }}
+            >
+              {year}
+            </p>
+          </div>
+        </div>
+
+        {/* Presets */}
+        <div
+          style={{
+            padding: isMobile ? '8px 16px' : '10px 36px',
+            display: 'flex',
+            gap: 6,
+            flexWrap: 'wrap',
+          }}
+        >
+          {[
+            ['week', 'This Week'],
+            ['next7', 'Next 7 Days'],
+            ['last', 'Last Selection'],
+          ].map(([k, label]) => (
+            <button
+              key={k}
+              onClick={() => applyPreset(k)}
+              style={{
+                fontSize: 10,
+                fontWeight: 700,
+                letterSpacing: '0.1em',
+                padding: '4px 10px',
+                borderRadius: 20,
+                border: '1.5px solid var(--ink)',
+                background: 'transparent',
+                cursor: 'pointer',
+                color: 'var(--ink)',
+                textTransform: 'uppercase',
+                transition: 'all 0.15s',
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.background = 'var(--ink)'
+                e.currentTarget.style.color = 'var(--cream)'
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.background = 'transparent'
+                e.currentTarget.style.color = 'var(--ink)'
+              }}
+            >
+              {label}
+            </button>
+          ))}
+          {isWeekendGetaway && (
+            <span
+              style={{
+                fontSize: 10,
+                fontWeight: 700,
+                padding: '4px 10px',
+                borderRadius: 20,
+                background: 'var(--yellow)',
+                color: 'var(--ink)',
+              }}
+            >
+              Weekend Getaway Detected 🌴
+            </span>
+          )}
+        </div>
+
+        {/* Divider */}
+        <div style={{ height: 2, background: 'var(--ink)', margin: '0' }} />
+
+        {/* ── BODY ── */}
+        <div style={{ display: 'flex', flexWrap: 'wrap' }}>
+          {/* Calendar side */}
+          <div
+            className={`${anim} ripped-edge`}
             style={{
-              width: 36,
-              height: 36,
-              borderRadius: '50%',
-              border: '2px solid #1a1a1a',
-              background: 'transparent',
-              cursor: 'pointer',
-              fontSize: 18,
+              flex: '1 1 580px',
+              position: 'relative',
+              borderRight: isMobile ? 'none' : '2px solid var(--ink)',
+            }}
+            onTouchStart={onTouchStart}
+            onTouchEnd={onTouchEnd}
+          >
+            <CalendarGrid
+              days={days}
+              year={year}
+              month={month}
+              startDate={startDate}
+              endDate={endDate}
+              hoverDate={hoverDate}
+              setHoverDate={setHoverDate}
+              onDayClick={handleDayClick}
+              stickers={STICKERS}
+            />
+          </div>
+
+          {/* Notes — desktop */}
+          {!isMobile && (
+            <div style={{ flex: '1 1 200px', minWidth: 180 }}>
+              <NotesPanel
+                notes={activeNote}
+                onChange={setActiveNote}
+                startDate={startDate}
+                endDate={endDate}
+                rangeKey={rangeKey}
+              />
+            </div>
+          )}
+        </div>
+
+        {/* Bottom strip */}
+        <div style={{ height: 10, background: 'var(--ink)' }} />
+      </div>
+
+      {/* ── Mobile Bottom Sheet ── */}
+      {isMobile && (
+        <div className={`bottom-sheet ${notesOpen ? 'open' : ''}`}>
+          <div
+            onClick={() => setNotesOpen((o) => !o)}
+            style={{
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              fontWeight: 'bold',
-              color: '#1a1a1a',
-              transition: 'all 0.2s',
-              flexShrink: 0,
-            }}
-            onMouseEnter={(e) => {
-              e.currentTarget.style.background = '#1a1a1a'
-              e.currentTarget.style.color = '#f0ece3'
-            }}
-            onMouseLeave={(e) => {
-              e.currentTarget.style.background = 'transparent'
-              e.currentTarget.style.color = '#1a1a1a'
+              padding: '12px 0',
+              cursor: 'pointer',
+              gap: 8,
             }}
           >
-            ›
-          </button>
-        </div>
-
-        {/* Quote + deco */}
-        <div style={{ maxWidth: 280, paddingTop: 8, position: 'relative' }}>
-          {/* Asterisk deco */}
-          <div
-            style={{
-              position: 'absolute',
-              top: -8,
-              right: -16,
-              fontSize: 28,
-              color: '#1a1a1a',
-              fontWeight: 900,
-              lineHeight: 1,
-            }}
-          >
-            ✳
+            <div
+              style={{
+                width: 40,
+                height: 4,
+                borderRadius: 2,
+                background: '#c0bcb4',
+              }}
+            />
+            <span
+              style={{
+                fontSize: 12,
+                fontWeight: 700,
+                letterSpacing: '0.1em',
+                textTransform: 'uppercase',
+                color: 'var(--ink)',
+              }}
+            >
+              📝 Notes {notesOpen ? '▼' : '▲'}
+            </span>
           </div>
-          <p
-            style={{
-              fontSize: 11,
-              fontWeight: 500,
-              lineHeight: 1.6,
-              color: '#444',
-              textTransform: 'uppercase',
-              letterSpacing: '0.08em',
-              margin: 0,
-            }}
-          >
-            {MONTH_QUOTES[month]}
-          </p>
-        </div>
-      </div>
-
-      {/* Divider */}
-      <div style={{ height: 2, background: '#1a1a1a', margin: '16px 0 0' }} />
-
-      {/* Main body */}
-      <div style={{ display: 'flex', flexDirection: 'row', flexWrap: 'wrap' }}>
-        {/* Calendar grid */}
-        <div
-          className={`calendar-page ${anim}`}
-          style={{
-            flex: '1 1 580px',
-            position: 'relative',
-            borderRight: '2px solid #1a1a1a',
-          }}
-        >
-          <CalendarGrid
-            currentDate={cur}
-            startDate={startDate}
-            endDate={endDate}
-            onDayClick={handleDayClick}
-          />
-          {/* Page fold corner */}
-          <div className="page-fold" />
-        </div>
-
-        {/* Notes panel */}
-        <div style={{ flex: '1 1 200px', minWidth: 180 }}>
           <NotesPanel
-            notes={notes[monthKey] || ''}
-            onChange={(val) => setNotes((p) => ({ ...p, [monthKey]: val }))}
+            notes={activeNote}
+            onChange={setActiveNote}
             startDate={startDate}
             endDate={endDate}
+            rangeKey={rangeKey}
           />
         </div>
-      </div>
-
-      {/* Bottom strip */}
-      <div style={{ height: 8, background: '#1a1a1a' }} />
+      )}
     </div>
   )
+}
+
+const navBtn = {
+  width: 28,
+  height: 28,
+  borderRadius: '50%',
+  border: '1.5px solid var(--ink)',
+  background: 'transparent',
+  cursor: 'pointer',
+  fontSize: 16,
+  fontWeight: 700,
+  display: 'flex',
+  alignItems: 'center',
+  justifyContent: 'center',
+  color: 'var(--ink)',
+  lineHeight: 1,
 }

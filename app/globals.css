@@ -64,6 +64,117 @@ body {
 }
 
 /* Scrollbar */
+@import 'tailwindcss';
+@import url('https://fonts.googleapis.com/css2?family=Permanent+Marker&family=DM+Sans:wght@400;500;700;900&display=swap');
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+:root {
+  --cream: #f0ece3;
+  --ink: #1a1a1a;
+  --grid: #c8c4bc;
+  --red: #d63031;
+  --yellow: #f7e55b;
+  --blue: #74b9ff;
+  --green: #55efc4;
+  --pink: #fd79a8;
+  --range-bg: rgba(26, 26, 26, 0.07);
+  --range-hover: rgba(26, 26, 26, 0.04);
+}
+
+body {
+  font-family: 'DM Sans', sans-serif;
+  background: #ddd9d0;
+  min-height: 100vh;
+}
+
+/* ── Scrollbar ── */
+::-webkit-scrollbar {
+  width: 5px;
+}
+::-webkit-scrollbar-thumb {
+  background: #b0a898;
+  border-radius: 3px;
+}
+
+/* ── 3D Page Flip ── */
+@keyframes flipOut {
+  0% {
+    transform: perspective(1400px) rotateY(0deg);
+    opacity: 1;
+  }
+  100% {
+    transform: perspective(1400px) rotateY(-90deg);
+    opacity: 0;
+  }
+}
+@keyframes flipIn {
+  0% {
+    transform: perspective(1400px) rotateY(90deg);
+    opacity: 0;
+  }
+  100% {
+    transform: perspective(1400px) rotateY(0deg);
+    opacity: 1;
+  }
+}
+.flip-out {
+  animation: flipOut 0.28s ease-in forwards;
+  transform-origin: left center;
+}
+.flip-in {
+  animation: flipIn 0.32s ease-out forwards;
+  transform-origin: left center;
+}
+
+/* ── Ripped bottom edge for mobile ── */
+@media (max-width: 640px) {
+  .ripped-edge::after {
+    content: '';
+    display: block;
+    height: 18px;
+    background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 18'%3E%3Cpath d='M0,0 Q20,18 40,8 Q60,0 80,14 Q100,18 120,6 Q140,0 160,16 Q180,18 200,4 Q220,0 240,14 Q260,18 280,6 Q300,0 320,16 Q340,18 360,8 Q380,0 400,12 L400,18 L0,18Z' fill='%23ddd9d0'/%3E%3C/svg%3E")
+      no-repeat bottom;
+    background-size: cover;
+    margin-top: -2px;
+  }
+}
+
+/* ── Bottom sheet ── */
+.bottom-sheet {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 50;
+  background: var(--cream);
+  border-top: 2px solid var(--ink);
+  border-radius: 16px 16px 0 0;
+  transform: translateY(calc(100% - 56px));
+  transition: transform 0.35s cubic-bezier(0.32, 0.72, 0, 1);
+  touch-action: none;
+  max-height: 85vh;
+  overflow-y: auto;
+}
+.bottom-sheet.open {
+  transform: translateY(0);
+}
+
+/* ── Focus ring for accessibility ── */
+.day-cell:focus {
+  outline: 2px solid var(--ink);
+  outline-offset: -2px;
+  z-index: 2;
+}
+.day-cell:focus:not(:focus-visible) {
+  outline: none;
+}
 ::-webkit-scrollbar {
   width: 6px;
 }

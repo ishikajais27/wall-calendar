@@ -1,24 +1,21 @@
+import { memo } from 'react'
 import DateCell from './DateCell'
 import { HOLIDAYS } from './Calendar'
 
 const DAYS = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT']
 
-export default function CalendarGrid({
-  currentDate,
+function CalendarGrid({
+  days,
+  year,
+  month,
   startDate,
   endDate,
+  hoverDate,
+  setHoverDate,
   onDayClick,
+  stickers,
 }) {
-  const year = currentDate.getFullYear()
-  const month = currentDate.getMonth()
-  const firstDay = new Date(year, month, 1).getDay()
-  const total = new Date(year, month + 1, 0).getDate()
-
-  const cells = []
-  for (let i = 0; i < firstDay; i++) cells.push(null)
-  for (let d = 1; d <= total; d++) cells.push(new Date(year, month, d))
-  while (cells.length % 7 !== 0) cells.push(null)
-
+  const previewEnd = !endDate ? hoverDate : null
   const diffDays =
     startDate && endDate
       ? Math.round(Math.abs(endDate - startDate) / 86400000) + 1
@@ -31,7 +28,7 @@ export default function CalendarGrid({
         style={{
           display: 'grid',
           gridTemplateColumns: 'repeat(7,1fr)',
-          borderBottom: '2px solid #1a1a1a',
+          borderBottom: '1.5px solid var(--ink)',
         }}
       >
         {DAYS.map((d, i) => (
@@ -41,10 +38,10 @@ export default function CalendarGrid({
               textAlign: 'center',
               padding: '10px 4px',
               fontSize: 11,
-              fontWeight: 700,
+              fontWeight: 900,
               letterSpacing: '0.15em',
-              color: i === 0 || i === 6 ? '#c0392b' : '#1a1a1a',
-              borderRight: i < 6 ? '1px solid #d0ccc4' : 'none',
+              color: 'var(--ink)',
+              borderRight: i < 6 ? '1px solid var(--grid)' : 'none',
             }}
           >
             {d}
@@ -54,14 +51,14 @@ export default function CalendarGrid({
 
       {/* Range badge */}
       {diffDays && (
-        <div style={{ textAlign: 'center', padding: '8px 0 0' }}>
+        <div style={{ textAlign: 'center', padding: '6px 0 0' }}>
           <span
             style={{
-              background: '#1a1a1a',
-              color: '#f0ece3',
-              fontSize: 11,
+              background: 'var(--ink)',
+              color: 'var(--cream)',
+              fontSize: 10,
               fontWeight: 700,
-              letterSpacing: '0.1em',
+              letterSpacing: '0.12em',
               padding: '3px 12px',
               borderRadius: 20,
               display: 'inline-block',
@@ -74,21 +71,29 @@ export default function CalendarGrid({
 
       {/* Grid */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7,1fr)' }}>
-        {cells.map((date, i) => {
+        {days.map((date, i) => {
           const col = i % 7
-          const isLastRow = i >= cells.length - 7
+          const isLastRow = i >= days.length - 7
+          const sticker = date
+            ? stickers[
+                `${date.getFullYear()}-${date.getMonth()}-${date.getDate()}`
+              ]
+            : null
           return date ? (
             <DateCell
               key={i}
               date={date}
               startDate={startDate}
               endDate={endDate}
+              previewEnd={previewEnd}
               holiday={
                 HOLIDAYS[
                   `${date.getFullYear()}-${date.getMonth()}-${date.getDate()}`
                 ]
               }
-              onClick={() => onDayClick(date)}
+              sticker={sticker}
+              onDayClick={onDayClick}
+              onHover={setHoverDate}
               borderRight={col < 6}
               borderBottom={!isLastRow}
             />
@@ -96,9 +101,9 @@ export default function CalendarGrid({
             <div
               key={i}
               style={{
-                height: 72,
-                borderRight: col < 6 ? '1px solid #d0ccc4' : 'none',
-                borderBottom: !isLastRow ? '1px solid #d0ccc4' : 'none',
+                height: 80,
+                borderRight: col < 6 ? '1px solid var(--grid)' : 'none',
+                borderBottom: !isLastRow ? '1px solid var(--grid)' : 'none',
               }}
             />
           )
@@ -108,22 +113,25 @@ export default function CalendarGrid({
       {/* Legend */}
       <div
         style={{
-          padding: '8px 12px',
+          padding: '8px 16px',
           display: 'flex',
           gap: 16,
           flexWrap: 'wrap',
-          fontSize: 10,
-          color: '#888',
-          fontWeight: 600,
-          letterSpacing: '0.08em',
-          borderTop: '1px dashed #c0bbb0',
+          fontSize: 9,
+          color: '#999',
+          fontWeight: 700,
+          letterSpacing: '0.1em',
+          borderTop: '1px dashed var(--grid)',
         }}
       >
-        <span>● START/END</span>
-        <span style={{ color: '#aaa' }}>▒ IN RANGE</span>
-        <span style={{ color: '#c0392b' }}>● HOLIDAY</span>
+        <span style={{ color: 'var(--ink)' }}>● START/END</span>
+        <span>▒ IN RANGE</span>
+        <span style={{ color: 'var(--red)' }}>● HOLIDAY</span>
         <span>□ TODAY</span>
+        <span style={{ color: '#74b9ff' }}>◈ PREVIEW</span>
       </div>
     </div>
   )
 }
+
+export default memo(CalendarGrid)
