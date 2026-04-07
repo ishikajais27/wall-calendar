@@ -1,28 +1,13 @@
 import DateCell from './DateCell'
 import { HOLIDAYS } from './Calendar'
 
-const DAYS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat']
-const MONTHS = [
-  'January',
-  'February',
-  'March',
-  'April',
-  'May',
-  'June',
-  'July',
-  'August',
-  'September',
-  'October',
-  'November',
-  'December',
-]
+const DAYS = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT']
 
 export default function CalendarGrid({
   currentDate,
   startDate,
   endDate,
   onDayClick,
-  onChangeMonth,
 }) {
   const year = currentDate.getFullYear()
   const month = currentDate.getMonth()
@@ -41,93 +26,58 @@ export default function CalendarGrid({
 
   return (
     <div>
-      {/* Nav */}
-      <div className="flex items-center justify-between mb-5">
-        <button
-          onClick={() => onChangeMonth(-1)}
-          className="w-9 h-9 flex items-center justify-center rounded-full text-xl font-bold transition-all"
-          style={{ color: '#8b7355', background: 'rgba(139,115,85,.1)' }}
-          onMouseEnter={(e) =>
-            (e.currentTarget.style.background = 'rgba(139,115,85,.22)')
-          }
-          onMouseLeave={(e) =>
-            (e.currentTarget.style.background = 'rgba(139,115,85,.1)')
-          }
-        >
-          ‹
-        </button>
-
-        <div className="text-center">
-          <h2
-            className="text-2xl font-bold"
-            style={{ color: '#4a3728', fontFamily: 'Georgia,serif' }}
-          >
-            {MONTHS[month]}
-          </h2>
-          <p
-            className="text-xs"
-            style={{ color: '#8b7355', letterSpacing: '.15em' }}
-          >
-            {year}
-          </p>
-        </div>
-
-        <button
-          onClick={() => onChangeMonth(1)}
-          className="w-9 h-9 flex items-center justify-center rounded-full text-xl font-bold transition-all"
-          style={{ color: '#8b7355', background: 'rgba(139,115,85,.1)' }}
-          onMouseEnter={(e) =>
-            (e.currentTarget.style.background = 'rgba(139,115,85,.22)')
-          }
-          onMouseLeave={(e) =>
-            (e.currentTarget.style.background = 'rgba(139,115,85,.1)')
-          }
-        >
-          ›
-        </button>
-      </div>
-
-      {/* Range pill */}
-      {diffDays && (
-        <div className="text-center mb-3">
-          <span
-            className="text-xs font-bold px-3 py-1 rounded-full"
-            style={{
-              background: '#4a3728',
-              color: '#fdf8f0',
-              letterSpacing: '.05em',
-            }}
-          >
-            {diffDays} day{diffDays > 1 ? 's' : ''} selected
-          </span>
-        </div>
-      )}
-
       {/* Day headers */}
-      <div className="grid grid-cols-7 mb-1">
+      <div
+        style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(7,1fr)',
+          borderBottom: '2px solid #1a1a1a',
+        }}
+      >
         {DAYS.map((d, i) => (
           <div
             key={d}
-            className="text-center text-xs font-bold py-2 uppercase tracking-widest"
-            style={{ color: i === 0 || i === 6 ? '#c0392b' : '#8b7355' }}
+            style={{
+              textAlign: 'center',
+              padding: '10px 4px',
+              fontSize: 11,
+              fontWeight: 700,
+              letterSpacing: '0.15em',
+              color: i === 0 || i === 6 ? '#c0392b' : '#1a1a1a',
+              borderRight: i < 6 ? '1px solid #d0ccc4' : 'none',
+            }}
           >
             {d}
           </div>
         ))}
       </div>
 
-      <div
-        className="mb-3 h-px"
-        style={{
-          background:
-            'linear-gradient(to right,transparent,#d4c4a8,transparent)',
-        }}
-      />
+      {/* Range badge */}
+      {diffDays && (
+        <div style={{ textAlign: 'center', padding: '8px 0 0' }}>
+          <span
+            style={{
+              background: '#1a1a1a',
+              color: '#f0ece3',
+              fontSize: 11,
+              fontWeight: 700,
+              letterSpacing: '0.1em',
+              padding: '3px 12px',
+              borderRadius: 20,
+              display: 'inline-block',
+            }}
+          >
+            {diffDays} DAY{diffDays > 1 ? 'S' : ''} SELECTED
+          </span>
+        </div>
+      )}
 
       {/* Grid */}
-      <div className="grid grid-cols-7">
-        {cells.map((date, i) =>
-          date ? (
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7,1fr)' }}>
+        {cells.map((date, i) => {
+          const col = i % 7
+          const isLastRow = i >= cells.length - 7
+          return date ? (
             <DateCell
               key={i}
               date={date}
@@ -139,46 +89,40 @@ export default function CalendarGrid({
                 ]
               }
               onClick={() => onDayClick(date)}
+              borderRight={col < 6}
+              borderBottom={!isLastRow}
             />
           ) : (
-            <div key={i} className="h-11" />
-          ),
-        )}
+            <div
+              key={i}
+              style={{
+                height: 72,
+                borderRight: col < 6 ? '1px solid #d0ccc4' : 'none',
+                borderBottom: !isLastRow ? '1px solid #d0ccc4' : 'none',
+              }}
+            />
+          )
+        })}
       </div>
 
       {/* Legend */}
       <div
-        className="mt-5 pt-4 flex flex-wrap gap-4 text-xs"
-        style={{ borderTop: '1px dashed #d4c4a8', color: '#8b7355' }}
+        style={{
+          padding: '8px 12px',
+          display: 'flex',
+          gap: 16,
+          flexWrap: 'wrap',
+          fontSize: 10,
+          color: '#888',
+          fontWeight: 600,
+          letterSpacing: '0.08em',
+          borderTop: '1px dashed #c0bbb0',
+        }}
       >
-        <span className="flex items-center gap-1">
-          <span
-            className="w-3 h-3 rounded-full inline-block"
-            style={{ background: '#4a3728' }}
-          />{' '}
-          Start / End
-        </span>
-        <span className="flex items-center gap-1">
-          <span
-            className="w-3 h-3 rounded inline-block"
-            style={{ background: 'rgba(139,115,85,.18)' }}
-          />{' '}
-          In Range
-        </span>
-        <span className="flex items-center gap-1">
-          <span
-            className="w-2 h-2 rounded-full inline-block"
-            style={{ background: '#c0392b' }}
-          />{' '}
-          Holiday
-        </span>
-        <span className="flex items-center gap-1">
-          <span
-            className="w-3 h-3 rounded inline-block border-2"
-            style={{ borderColor: '#4a3728' }}
-          />{' '}
-          Today
-        </span>
+        <span>● START/END</span>
+        <span style={{ color: '#aaa' }}>▒ IN RANGE</span>
+        <span style={{ color: '#c0392b' }}>● HOLIDAY</span>
+        <span>□ TODAY</span>
       </div>
     </div>
   )

@@ -1,6 +1,5 @@
 'use client'
 import { useState, useEffect, useRef } from 'react'
-import HeroImage from './HeroImage'
 import CalendarGrid from './CalendarGrid'
 import NotesPanel from './NotesPanel'
 
@@ -22,6 +21,51 @@ export const HOLIDAYS = {
   '2026-9-2': 'Gandhi Jayanti',
   '2026-11-25': 'Christmas',
 }
+
+const MONTH_QUOTES = [
+  'New year, same you — but upgraded. Start messy if you have to. Just start.',
+  'Love is in the details. Romanticise the small stuff.',
+  'Spring is coming. So is your main character era.',
+  'April showers, bold powers. Make it count.',
+  'Bloom where you are planted. No excuses.',
+  'Summer is a mindset. Adopt it.',
+  'Half the year done. The other half is yours.',
+  'August energy: golden, relentless, unstoppable.',
+  'Autumn is proof that change can be beautiful.',
+  'Spooky season, brave decisions. Go for it.',
+  'Gratitude is the best attitude. Count your wins.',
+  'End the year how you want the next to begin.',
+]
+
+const MONTH_EMOJIS = [
+  '❄️',
+  '🌸',
+  '🌿',
+  '🌧️',
+  '🌺',
+  '☀️',
+  '🏖️',
+  '🌻',
+  '🍂',
+  '🎃',
+  '🍁',
+  '🎄',
+]
+
+const MONTHS = [
+  'January',
+  'February',
+  'March',
+  'April',
+  'May',
+  'June',
+  'July',
+  'August',
+  'September',
+  'October',
+  'November',
+  'December',
+]
 
 export default function Calendar() {
   const today = new Date()
@@ -65,7 +109,7 @@ export default function Calendar() {
 
   function changeMonth(dir) {
     if (anim) return
-    setAnim('page-flip-out')
+    setAnim('flip-out')
     pending.current = dir
     setTimeout(() => {
       setCur(
@@ -73,44 +117,196 @@ export default function Calendar() {
       )
       setStartDate(null)
       setEndDate(null)
-      setAnim('page-flip-in')
+      setAnim('flip-in')
       setTimeout(() => setAnim(''), 400)
-    }, 350)
+    }, 300)
   }
+
+  const month = cur.getMonth()
+  const year = cur.getFullYear()
 
   return (
     <div
-      className="w-full max-w-4xl rounded-2xl overflow-hidden shadow-2xl"
       style={{
-        background: 'linear-gradient(135deg,#fdf8f0,#f5ede0)',
-        border: '1px solid #d4c4a8',
-        boxShadow: '0 20px 60px rgba(0,0,0,.28),0 4px 12px rgba(0,0,0,.15)',
+        width: '100%',
+        maxWidth: '960px',
+        background: '#f0ece3',
+        borderRadius: '4px',
+        boxShadow: '0 8px 40px rgba(0,0,0,0.22), 0 2px 8px rgba(0,0,0,0.12)',
+        overflow: 'hidden',
+        border: '1px solid #d0ccc4',
+        position: 'relative',
       }}
     >
-      {/* Spiral binding */}
+      {/* Top header area */}
       <div
-        className="flex justify-around px-8 py-2 items-center"
-        style={{ background: 'linear-gradient(to bottom,#b8a888,#c8b89a)' }}
+        style={{
+          background: '#f0ece3',
+          padding: '28px 32px 0',
+          display: 'flex',
+          alignItems: 'flex-start',
+          justifyContent: 'space-between',
+          gap: 16,
+          flexWrap: 'wrap',
+        }}
       >
-        {Array.from({ length: 18 }).map((_, i) => (
-          <div
-            key={i}
-            className="w-5 h-5 rounded-full border-2 shadow-inner"
+        {/* Month title + nav */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
+          <button
+            onClick={() => changeMonth(-1)}
             style={{
-              borderColor: '#7a6448',
-              background: 'radial-gradient(circle at 35% 35%,#c8a87a,#8b6e4a)',
+              width: 36,
+              height: 36,
+              borderRadius: '50%',
+              border: '2px solid #1a1a1a',
+              background: 'transparent',
+              cursor: 'pointer',
+              fontSize: 18,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              fontWeight: 'bold',
+              color: '#1a1a1a',
+              transition: 'all 0.2s',
+              flexShrink: 0,
             }}
-          />
-        ))}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.background = '#1a1a1a'
+              e.currentTarget.style.color = '#f0ece3'
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.background = 'transparent'
+              e.currentTarget.style.color = '#1a1a1a'
+            }}
+          >
+            ‹
+          </button>
+
+          <div>
+            <h1
+              style={{
+                fontFamily: '"Permanent Marker", cursive',
+                fontSize: 'clamp(42px, 7vw, 72px)',
+                color: '#1a1a1a',
+                margin: 0,
+                lineHeight: 1,
+                letterSpacing: '-1px',
+              }}
+            >
+              {MONTHS[month]}
+            </h1>
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 8,
+                marginTop: 4,
+              }}
+            >
+              <span style={{ fontSize: 20 }}>{MONTH_EMOJIS[month]}</span>
+              <span
+                style={{
+                  fontSize: 13,
+                  fontWeight: 700,
+                  letterSpacing: '0.2em',
+                  color: '#555',
+                  textTransform: 'uppercase',
+                }}
+              >
+                {year}
+              </span>
+            </div>
+          </div>
+
+          <button
+            onClick={() => changeMonth(1)}
+            style={{
+              width: 36,
+              height: 36,
+              borderRadius: '50%',
+              border: '2px solid #1a1a1a',
+              background: 'transparent',
+              cursor: 'pointer',
+              fontSize: 18,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              fontWeight: 'bold',
+              color: '#1a1a1a',
+              transition: 'all 0.2s',
+              flexShrink: 0,
+            }}
+            onMouseEnter={(e) => {
+              e.currentTarget.style.background = '#1a1a1a'
+              e.currentTarget.style.color = '#f0ece3'
+            }}
+            onMouseLeave={(e) => {
+              e.currentTarget.style.background = 'transparent'
+              e.currentTarget.style.color = '#1a1a1a'
+            }}
+          >
+            ›
+          </button>
+        </div>
+
+        {/* Quote + deco */}
+        <div style={{ maxWidth: 280, paddingTop: 8, position: 'relative' }}>
+          {/* Asterisk deco */}
+          <div
+            style={{
+              position: 'absolute',
+              top: -8,
+              right: -16,
+              fontSize: 28,
+              color: '#1a1a1a',
+              fontWeight: 900,
+              lineHeight: 1,
+            }}
+          >
+            ✳
+          </div>
+          <p
+            style={{
+              fontSize: 11,
+              fontWeight: 500,
+              lineHeight: 1.6,
+              color: '#444',
+              textTransform: 'uppercase',
+              letterSpacing: '0.08em',
+              margin: 0,
+            }}
+          >
+            {MONTH_QUOTES[month]}
+          </p>
+        </div>
       </div>
 
-      <div className="flex flex-col lg:flex-row">
-        {/* Left: Hero + Notes */}
+      {/* Divider */}
+      <div style={{ height: 2, background: '#1a1a1a', margin: '16px 0 0' }} />
+
+      {/* Main body */}
+      <div style={{ display: 'flex', flexDirection: 'row', flexWrap: 'wrap' }}>
+        {/* Calendar grid */}
         <div
-          className="flex flex-col lg:w-72 flex-shrink-0"
-          style={{ borderRight: '1px solid #d4c4a8' }}
+          className={`calendar-page ${anim}`}
+          style={{
+            flex: '1 1 580px',
+            position: 'relative',
+            borderRight: '2px solid #1a1a1a',
+          }}
         >
-          <HeroImage month={cur.getMonth()} year={cur.getFullYear()} />
+          <CalendarGrid
+            currentDate={cur}
+            startDate={startDate}
+            endDate={endDate}
+            onDayClick={handleDayClick}
+          />
+          {/* Page fold corner */}
+          <div className="page-fold" />
+        </div>
+
+        {/* Notes panel */}
+        <div style={{ flex: '1 1 200px', minWidth: 180 }}>
           <NotesPanel
             notes={notes[monthKey] || ''}
             onChange={(val) => setNotes((p) => ({ ...p, [monthKey]: val }))}
@@ -118,26 +314,10 @@ export default function Calendar() {
             endDate={endDate}
           />
         </div>
-
-        {/* Right: Calendar */}
-        <div
-          className={`flex-1 p-6 ${anim}`}
-          style={{ transformOrigin: 'top center', perspective: '1200px' }}
-        >
-          <CalendarGrid
-            currentDate={cur}
-            startDate={startDate}
-            endDate={endDate}
-            onDayClick={handleDayClick}
-            onChangeMonth={changeMonth}
-          />
-        </div>
       </div>
 
-      <div
-        className="h-3"
-        style={{ background: 'linear-gradient(to bottom,#d4c4a8,#b8a888)' }}
-      />
+      {/* Bottom strip */}
+      <div style={{ height: 8, background: '#1a1a1a' }} />
     </div>
   )
 }
