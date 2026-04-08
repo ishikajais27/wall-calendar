@@ -22,8 +22,8 @@ export default function RootLayout({ children }) {
       <body
         style={{
           fontFamily: poppins.style.fontFamily,
-          '--font-caveat': caveat.style.fontFamily,
-          '--font-playfair': playfair.style.fontFamily,
+          margin: 0,
+          padding: 0,
         }}
       >
         <style>{`
