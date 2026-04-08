@@ -1,4 +1,4 @@
-# 📅 Wall Calendar — Interactive React Component
+# 📅 Wall Calendar : Interactive React Component
 
 A polished, feature rich wall calendar built with **Next.js 14 (App Router)** and vanilla React no UI library dependencies. Designed to feel like a physical wall calendar while being fully interactive on both desktop and mobile.
 
